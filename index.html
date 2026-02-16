@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Viewer Pro - Secure & Local</title>
+    <style>
+        :root { --bg: #f8fafc; --primary: #1e293b; --accent: #3b82f6; --border: #e2e8f0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); color: #334155; }
+        
+        /* Header */
+        .header { 
+            background: white; border-bottom: 1px solid var(--border); padding: 15px 20px; 
+            position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .header h2 { margin: 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        
+        /* Controls */
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; }
+        input[type="file"] { display: none; }
+        .btn { 
+            padding: 8px 16px; border-radius: 6px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; 
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #e2e8f0; }
+        
+        #searchInput { 
+            flex: 1; min-width: 200px; padding: 8px 12px; border-radius: 6px; 
+            border: 1px solid var(--border); outline: none; font-size: 14px; 
+        }
+        #searchInput:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
+
+        /* Status Bar */
+        .status-bar { 
+            font-size: 12px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .badge { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 11px; }
+
+        /* Table */
+        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .table-wrapper { background: white; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+        th { 
+            background: #f8fafc; padding: 10px 15px; text-align: left; 
+            border-bottom: 1px solid var(--border); color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
+        }
+        td { padding: 10px 15px; border-bottom: 1px solid var(--border); word-break: break-all; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: #f8fafc; }
+        tr.hidden { display: none; }
+        
+        .code-box { 
+            background: #f1f5f9; padding: 4px 8px; border-radius: 4px; 
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; color: #334155; 
+        }
+        .url-text { color: var(--accent); font-weight: 500; }
+        
+        /* Loading Spinner */
+        .spinner { width: 16px; height: 16px; border: 2px solid #ffffff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Empty State */
+        #emptyState { text-align: center; padding: 60px 20px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="container" style="padding: 0; margin: 0 auto;">
+        <div class="header-top">
+            <h2>🛡️ Log Viewer <span class="badge">Local & Secure</span></h2>
+            <div id="fileInfo" style="font-size: 13px; color: #64748b;">Belum ada file dipilih</div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+                📂 Pilih File
+            </button>
+            <input type="file" id="fileInput" accept=".txt,.log,.csv,.sql">
+            
+            <input type="text" id="searchInput" placeholder="Filter hasil (URL, User, Pass)..." disabled>
+            
+            <button id="loadMore" class="btn btn-primary" style="display:none;">
+                <span class="spinner" id="loadingSpinner"></span> Muat +1MB
+            </button>
+        </div>
+        <div class="status-bar" id="statusBar"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="table-wrapper">
+        <div id="emptyState">
+            <p>Silakan pilih file (.txt, .log, .csv) untuk mulai membaca.</p>
+            <p style="font-size: 12px; opacity: 0.7;">Data diproses di browser Anda. Tidak ada yang diunggah.</p>
+        </div>
+        <table id="dataTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">#</th>
+                    <th>URL / Host</th>
+                    <th>Username / Email</th>
+                    <th>Password / Data</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const tableBody = document.getElementById('tableBody');
+    const dataTable = document.getElementById('dataTable');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const loadMoreBtn = document.getElementById('loadMore');
+    const statusBar = document.getElementById('statusBar');
+    const fileInfo = document.getElementById('fileInfo');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+    let currentFile = null;
+    let offset = 0;
+    let rowCount = 1;
+    const CHUNK_SIZE = 1024 * 1024; // 1MB per chunk
+
+    fileInput.addEventListener('change', (e) => {
+        currentFile = e.target.files[0];
+        if (!currentFile) return;
+
+        // Reset UI
+        tableBody.innerHTML = "";
+        offset = 0;
+        rowCount = 1;
+        searchInput.disabled = false;
+        searchInput.value = "";
+        dataTable.style.display = "table";
+        emptyState.style.display = "none";
+        
+        fileInfo.textContent = `${currentFile.name} (${(currentFile.size / (1024*1024)).toFixed(2)} MB)`;
+        
+        readChunk();
+    });
+
+    function readChunk() {
+        if (!currentFile) return;
+        
+        loadingSpinner.style.display = "block";
+        loadMoreBtn.disabled = true;
+
+        const reader = new FileReader();
+        const blob = currentFile.slice(offset, offset + CHUNK_SIZE);
+
+        reader.onload = function(e) {
+            const lines = e.target.result.split(/\r?\n/);
+            const fragment = document.createDocumentFragment();
+
+            lines.forEach(line => {
+                if (line.trim() === "") return;
+
+                // Logic Parsing Cerdas
+                let url = "-", user = "-", pass = "-";
+                
+                // Coba split umum
+                const parts = line.split(/[:|;,]/);
+
+                if (parts.length >= 3) {
+                    // Kemungkinan: URL:USER:PASS
+                    url = parts[0].trim();
+                    user = parts[1].trim();
+                    pass = parts.slice(2).join(':').trim();
+                } else if (parts.length === 2) {
+                    // Kemungkinan: USER:PASS
+                    user = parts[0].trim();
+                    pass = parts[1].trim();
+                } else {
+                    // Mentah
+                    user = line.trim();
+                }
+
+                // Skip header CSV/Log umum jika terdeteksi
+                if(url.toLowerCase() === 'url' && user.toLowerCase() === 'username') return;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="color:#cbd5e0; font-size:11px;">${rowCount++}</td>
+                    <td class="url-text">${escapeHtml(url)}</td>
+                    <td>${escapeHtml(user)}</td>
+                    <td><div class="code-box">${escapeHtml(pass)}</div></td>
+                `;
+                fragment.appendChild(tr);
+            });
+
+            tableBody.appendChild(fragment);
+            offset += CHUNK_SIZE;
+            
+            loadingSpinner.style.display = "none";
+            loadMoreBtn.disabled = false;
+            updateStatus();
+            
+            // Re-apply search filter jika ada
+            if(searchInput.value) triggerSearch();
+        };
+        
+        reader.onerror = function() {
+            alert("Gagal membaca file!");
+            loadingSpinner.style.display = "none";
+        };
+
+        reader.readAsText(blob);
+    }
+
+    function updateStatus() {
+        const percent = Math.min(100, (offset / currentFile.size) * 100).toFixed(1);
+        statusBar.textContent = `Ditampilkan: ${rowCount-1} baris | Progress File: ${percent}%`;
+        
+        if (offset < currentFile.size) {
+            loadMoreBtn.style.display = "inline-flex";
+            loadMoreBtn.innerHTML = `Muat Lebih Banyak (${(offset/(1024*1024)).toFixed(1)}MB / ${(currentFile.size/(1024*1024)).toFixed(1)}MB)`;
+        } else {
+            loadMoreBtn.style.display = "none";
+            statusBar.textContent += " (Selesai)";
+        }
+    }
+
+    // Fungsi Keamanan XSS Sederhana
+    function escapeHtml(text) {
+        if (!text) return "-";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // Fungsi Pencarian
+    function triggerSearch() {
+        const filter = searchInput.value.toLowerCase();
+        const rows = tableBody.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+            const text = rows[i].textContent.toLowerCase();
+            rows[i].classList.toggle('hidden', !text.includes(filter));
+        }
+    }
+
+    searchInput.addEventListener('keyup', triggerSearch);
+    loadMoreBtn.addEventListener('click', readChunk);
+</script>
+
+</body>
+</html>
