@@ -3,254 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Viewer Pro - Secure & Local</title>
+    <title>KTP Generator Web</title>
     <style>
-        :root { --bg: #f8fafc; --primary: #1e293b; --accent: #3b82f6; --border: #e2e8f0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); color: #334155; }
-        
-        /* Header */
-        .header { 
-            background: white; border-bottom: 1px solid var(--border); padding: 15px 20px; 
-            position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f7f6;
         }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .header h2 { margin: 0; font-size: 18px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
-        
-        /* Controls */
-        .controls { display: flex; gap: 10px; flex-wrap: wrap; }
-        input[type="file"] { display: none; }
-        .btn { 
-            padding: 8px 16px; border-radius: 6px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; 
-            display: inline-flex; align-items: center; gap: 6px;
+        /* Sidebar untuk Form */
+        .form-container {
+            width: 350px;
+            padding: 20px;
+            background: #ffffff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-secondary { background: #f1f5f9; color: #475569; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #e2e8f0; }
-        
-        #searchInput { 
-            flex: 1; min-width: 200px; padding: 8px 12px; border-radius: 6px; 
-            border: 1px solid var(--border); outline: none; font-size: 14px; 
+        .form-container h2 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
         }
-        #searchInput:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
-
-        /* Status Bar */
-        .status-bar { 
-            font-size: 12px; color: #64748b; margin-top: 10px; display: flex; justify-content: space-between; align-items: center;
+        .input-group {
+            display: flex;
+            flex-direction: column;
         }
-        .badge { background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 10px; font-weight: 600; font-size: 11px; }
-
-        /* Table */
-        .container { padding: 20px; max-width: 1200px; margin: 0 auto; }
-        .table-wrapper { background: white; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-        th { 
-            background: #f8fafc; padding: 10px 15px; text-align: left; 
-            border-bottom: 1px solid var(--border); color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
+        .input-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 4px;
         }
-        td { padding: 10px 15px; border-bottom: 1px solid var(--border); word-break: break-all; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover { background: #f8fafc; }
-        tr.hidden { display: none; }
-        
-        .code-box { 
-            background: #f1f5f9; padding: 4px 8px; border-radius: 4px; 
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 12px; color: #334155; 
+        .input-group input, .input-group select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
         }
-        .url-text { color: var(--accent); font-weight: 500; }
-        
-        /* Loading Spinner */
-        .spinner { width: 16px; height: 16px; border: 2px solid #ffffff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Empty State */
-        #emptyState { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        button {
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        /* Area Preview */
+        .preview-container {
+            flex-grow: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+        }
+        iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 600px;
+            border: 2px dashed #ccc;
+            background: #fff;
+            border-radius: 8px;
+        }
+        .info-text {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="container" style="padding: 0; margin: 0 auto;">
-        <div class="header-top">
-            <h2>🛡️ Log Viewer <span class="badge">Local & Secure</span></h2>
-            <div id="fileInfo" style="font-size: 13px; color: #64748b;">Belum ada file dipilih</div>
-        </div>
+    <div class="form-container">
+        <h2>Input Data KTP</h2>
         
-        <div class="controls">
-            <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
-                📂 Pilih File
-            </button>
-            <input type="file" id="fileInput" accept=".txt,.log,.csv,.sql">
-            
-            <input type="text" id="searchInput" placeholder="Filter hasil (URL, User, Pass)..." disabled>
-            
-            <button id="loadMore" class="btn btn-primary" style="display:none;">
-                <span class="spinner" id="loadingSpinner"></span> Muat +1MB
-            </button>
+        <div class="input-group">
+            <label>Template</label>
+            <select id="in_template">
+                <option value="1">Template 1 (Standar)</option>
+                <option value="2">Template 2 (Varian 1)</option>
+                <option value="3">Template 3 (Varian 2)</option>
+                <option value="4">Template 4 (HD/Blur Efek)</option>
+            </select>
         </div>
-        <div class="status-bar" id="statusBar"></div>
+
+        <div class="input-group"><label>Foto Profil</label><input type="file" id="in_photo" accept="image/*"></div>
+        <div class="input-group"><label>Provinsi</label><input type="text" id="in_provinsi" value="JAWA TENGAH"></div>
+        <div class="input-group"><label>Kabupaten/Kota</label><input type="text" id="in_kabupaten" value="BANJARNEGARA"></div>
+        <div class="input-group"><label>NIK</label><input type="text" id="in_nik" value="3304123456789012"></div>
+        <div class="input-group"><label>Nama</label><input type="text" id="in_nama" value="NAMA LENGKAP"></div>
+        <div class="input-group"><label>Tempat/Tgl Lahir</label><input type="text" id="in_ttl" value="BANJARNEGARA, 01-01-2000"></div>
+        <div class="input-group"><label>Jenis Kelamin</label><input type="text" id="in_gender" value="LAKI-LAKI"></div>
+        <div class="input-group"><label>Gol. Darah</label><input type="text" id="in_darah" value="-"></div>
+        <div class="input-group"><label>Alamat</label><input type="text" id="in_alamat" value="JL. CONTOH ALAMAT NO. 123"></div>
+        <div class="input-group"><label>RT/RW</label><input type="text" id="in_rt" value="001/002"></div>
+        <div class="input-group"><label>Kel/Desa</label><input type="text" id="in_desa" value="NAMA DESA"></div>
+        <div class="input-group"><label>Kecamatan</label><input type="text" id="in_kecamatan" value="NAMA KECAMATAN"></div>
+        <div class="input-group"><label>Agama</label><input type="text" id="in_agama" value="ISLAM"></div>
+        <div class="input-group"><label>Status Perkawinan</label><input type="text" id="in_status" value="BELUM KAWIN"></div>
+        <div class="input-group"><label>Pekerjaan</label><input type="text" id="in_pekerjaan" value="PELAJAR/MAHASISWA"></div>
+        <div class="input-group"><label>Kewarganegaraan</label><input type="text" id="in_kewarganegaraan" value="WNI"></div>
+        <div class="input-group"><label>Berlaku Hingga</label><input type="text" id="in_berlaku" value="SEUMUR HIDUP"></div>
+        <div class="input-group"><label>Tempat Pembuatan</label><input type="text" id="in_dibuat" value="BANJARNEGARA"></div>
+        <div class="input-group"><label>Tanggal Pembuatan</label><input type="text" id="in_terbuat" value="01-01-2026"></div>
+        <div class="input-group"><label>Tanda Tangan (Teks)</label><input type="text" id="in_sign" value="Ttd"></div>
+
+        <button onclick="generatePreview()">Buat Preview</button>
     </div>
-</div>
 
-<div class="container">
-    <div class="table-wrapper">
-        <div id="emptyState">
-            <p>Silakan pilih file (.txt, .log, .csv) untuk mulai membaca.</p>
-            <p style="font-size: 12px; opacity: 0.7;">Data diproses di browser Anda. Tidak ada yang diunggah.</p>
-        </div>
-        <table id="dataTable" style="display:none;">
-            <thead>
-                <tr>
-                    <th style="width: 50px;">#</th>
-                    <th>URL / Host</th>
-                    <th>Username / Email</th>
-                    <th>Password / Data</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+    <div class="preview-container">
+        <p class="info-text">Silakan isi form di sebelah kiri dan klik "Buat Preview". Screenshot hasil di bawah ini untuk menyimpannya.</p>
+        <iframe id="preview-frame"></iframe>
     </div>
-</div>
 
-<script>
-    const fileInput = document.getElementById('fileInput');
-    const tableBody = document.getElementById('tableBody');
-    const dataTable = document.getElementById('dataTable');
-    const emptyState = document.getElementById('emptyState');
-    const searchInput = document.getElementById('searchInput');
-    const loadMoreBtn = document.getElementById('loadMore');
-    const statusBar = document.getElementById('statusBar');
-    const fileInfo = document.getElementById('fileInfo');
-    const loadingSpinner = document.getElementById('loadingSpinner');
+    <script>
+        // Array Templates bawaan dari kodenya sebelumnya
+        const templates = [{
+            html: (photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign) => `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><style>@font-face{font-family:'Open Sans Bold';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Bold.ttf') format('truetype')}@font-face{font-family:'Open Sans Regular';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Regular.ttf') format('truetype')}@font-face{font-family:'Bolmand Signature';src:url('https://befonts.com/wp-content/uploads/2025/02/bolmandsignature-0vr8r.ttf') format('truetype')}@font-face{font-family:'Bygone ST Typewriter';src:url('https://befonts.com/wp-content/uploads/2023/01/bygonesttypewriterdemo-4b1dp.otf') format('opentype')}.ktp-container{position:relative;width:720px;height:430px;background-image:url('https://i.pinimg.com/originals/b3/68/ef/b368ef2afb6710cea75fa88371b2cd1e.jpg');background-size:cover;font-family:sans-serif;color:#000;padding:20px;box-sizing:border-box}.lokasi{position:absolute;top:15px;left:50%;transform:translateX(-50%);text-align:center;width:80%}.provinsi,.kabupaten{display:block;font-family:'Open Sans Bold',sans-serif;font-size:28px;line-height:1}.nik-value{position:absolute;top:98px;left:180px;font-family:'Bygone ST Typewriter',monospace;font-size:22px}.info-utama{position:absolute;left:195px;top:139px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.4;font-weight:700}.info-kanan{position:absolute;right:60px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.4;font-weight:700;text-align:center}.blood-container{top:184px;right:234px}.created-location-container{bottom:60px;right:70px}.created-date-container{bottom:40px;right:67px}.blood,.created-location,.created-date{display:block}.photo-container{position:absolute;top:125px;right:15px;width:178px;height:220px;overflow:hidden;border:1px solid #ccc}.photo{width:100%;height:100%;object-fit:cover}.signature{position:absolute;right:70px;bottom:8px;font-family:'Bolmand Signature',cursive;font-size:30px;font-style:italic}</style></head><body><div class="ktp-container"><div class="lokasi"><div class="provinsi">PROVINSI \${provinsi}</div><div class="kabupaten">KABUPATEN \${kabupaten}</div></div><div class="nik-value">\${nik}</div><div class="info-utama"><div>\${nama}</div><div>\${ttl}</div><div>\${gender}</div><div>\${alamat}</div><div>\${rt}</div><div>\${desa}</div><div>\${kecamatan}</div><div>\${agama}</div><div>\${status}</div><div>\${pekerjaan}</div><div>\${kewarganegaraan}</div><div>\${berlaku}</div></div><div class="info-kanan blood-container"><div class="blood">\${darah}</div></div><div class="info-kanan created-location-container"><div class="created-location">\${dibuat}</div></div><div class="info-kanan created-date-container"><div class="created-date">\${terbuat}</div></div><div class="photo-container"><img src="\${photo}" alt="Foto" class="photo"></div><div class="signature">\${sign}</div></div></body></html>`
+        }, {
+            html: (photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign) => `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><style>@font-face{font-family:'Open Sans Bold';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Bold.ttf') format('truetype')}@font-face{font-family:'Open Sans Regular';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Regular.ttf') format('truetype')}@font-face{font-family:'Bolmand Signature';src:url('https://befonts.com/wp-content/uploads/2025/02/bolmandsignature-0vr8r.ttf') format('truetype')}@font-face{font-family:'Bygone ST Typewriter';src:url('https://befonts.com/wp-content/uploads/2023/01/bygonesttypewriterdemo-4b1dp.otf') format('opentype')}.ktp-container{position:relative;width:735px;height:463px;background-image:url('https://i.pinimg.com/originals/75/d3/80/75d380e895cbb523d9bf990ae7555fdf.jpg');background-size:cover;font-family:sans-serif;color:#000;padding:20px;box-sizing:border-box}.lokasi{position:absolute;top:15px;left:50%;transform:translateX(-50%);text-align:center;font-family:'Open Sans Bold',sans-serif;font-size:28px;line-height:1}.provinsi,.kabupaten{display:block}.nik-value{position:absolute;top:83px;left:155px;font-family:'Bygone ST Typewriter',monospace;font-size:22px}.info-utama{position:absolute;left:225px;top:124px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.4;font-weight:700}.info-kanan{position:absolute;right:84px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.4;font-weight:700;text-align:center}.blood-container{top:170px;right:230px}.created-location-container{bottom:130px;right:90px}.created-date-container{bottom:110px;right:87px}.blood,.created-location,.created-date{display:block}.photo-container{position:absolute;top:94px;right:35px;width:170px;height:210px;overflow:hidden;border:1px solid #ccc}.photo{width:100%;height:100%;object-fit:cover}.signature{position:absolute;right:95px;bottom:70px;font-family:'Bolmand Signature',cursive;font-size:30px;font-style:italic}</style></head><body><div class="ktp-container"><div class="lokasi"><div class="provinsi">PROVINSI \${provinsi}</div><div class="kabupaten">KABUPATEN \${kabupaten}</div></div><div class="nik-value">\${nik}</div><div class="info-utama"><div>\${nama}</div><div>\${ttl}</div><div>\${gender}</div><div>\${alamat}</div><div>\${rt}</div><div>\${desa}</div><div>\${kecamatan}</div><div>\${agama}</div><div>\${status}</div><div>\${pekerjaan}</div><div>\${kewarganegaraan}</div><div>\${berlaku}</div></div><div class="info-kanan blood-container"><div class="blood">\${darah}</div></div><div class="info-kanan created-location-container"><div class="created-location">\${dibuat}</div></div><div class="info-kanan created-date-container"><div class="created-date">\${terbuat}</div></div><div class="photo-container"><img src="\${photo}" alt="Foto" class="photo"></div><div class="signature">\${sign}</div></div></body></html>`
+        }, {
+            html: (photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign) => `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><style>@font-face{font-family:'Open Sans Bold';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Bold.ttf') format('truetype')}@font-face{font-family:'Open Sans Regular';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Regular.ttf') format('truetype')}@font-face{font-family:'Bolmand Signature';src:url('https://befonts.com/wp-content/uploads/2025/02/bolmandsignature-0vr8r.ttf') format('truetype')}@font-face{font-family:'Bygone ST Typewriter';src:url('https://befonts.com/wp-content/uploads/2023/01/bygonesttypewriterdemo-4b1dp.otf') format('opentype')}.ktp-container{position:relative;width:735px;height:477px;background-image:url('https://i.pinimg.com/originals/20/81/cf/2081cf22af8e8b58cc483fc847335532.jpg');background-size:cover;font-family:sans-serif;color:#000;padding:20px;box-sizing:border-box}.lokasi{position:absolute;top:30px;left:50%;transform:translateX(-50%);text-align:center;font-family:'Open Sans Bold',sans-serif;font-size:28px;line-height:1}.provinsi,.kabupaten{display:block}.nik-value{position:absolute;top:108px;left:200px;font-family:'Bygone ST Typewriter',monospace;font-size:22px}.info-utama{position:absolute;left:215px;top:148px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.3;font-weight:700}.info-kanan{position:absolute;right:95px;font-family:'Open Sans Regular',sans-serif;font-size:16px;line-height:1.4;font-weight:700;text-align:center}.blood-container{top:189px;right:249px}.created-location-container{bottom:110px;right:95px}.created-date-container{bottom:90px;right:91px}.blood,.created-location,.created-date{display:block}.photo-container{position:absolute;top:130px;right:45px;width:170px;height:210px;overflow:hidden;border:1px solid #ccc}.photo{width:100%;height:100%;object-fit:cover}.signature{position:absolute;right:95px;bottom:50px;font-family:'Bolmand Signature',cursive;font-size:30px;font-style:italic}</style></head><body><div class="ktp-container"><div class="lokasi"><div class="provinsi">PROVINSI \${provinsi}</div><div class="kabupaten">KABUPATEN \${kabupaten}</div></div><div class="nik-value">\${nik}</div><div class="info-utama"><div>\${nama}</div><div>\${ttl}</div><div>\${gender}</div><div>\${alamat}</div><div>\${rt}</div><div>\${desa}</div><div>\${kecamatan}</div><div>\${agama}</div><div>\${status}</div><div>\${pekerjaan}</div><div>\${kewarganegaraan}</div><div>\${berlaku}</div></div><div class="info-kanan blood-container"><div class="blood">\${darah}</div></div><div class="info-kanan created-location-container"><div class="created-location">\${dibuat}</div></div><div class="info-kanan created-date-container"><div class="created-date">\${terbuat}</div></div><div class="photo-container"><img src="\${photo}" alt="Foto" class="photo"></div><div class="signature">\${sign}</div></div></body></html>`
+        }, {
+            html: (photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign) => `<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><style>@font-face{font-family:'Open Sans Bold';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Bold.ttf') format('truetype')}@font-face{font-family:'Open Sans Regular';src:url('https://befonts.com/wp-content/themes/befonts25/custom/fonts/OpenSans-Regular.ttf') format('truetype')}@font-face{font-family:'Bolmand Signature';src:url('https://befonts.com/wp-content/uploads/2025/02/bolmandsignature-0vr8r.ttf') format('truetype')}@font-face{font-family:'Bygone ST Typewriter';src:url('https://befonts.com/wp-content/uploads/2023/01/bygonesttypewriterdemo-4b1dp.otf') format('opentype')}.ktp-container{position:relative;width:1200px;height:800px;background-image:url('https://assets.poskota.co.id/crop/original/medias/2025/Mar/14/nik-ktp.jpg');background-size:cover;font-family:sans-serif;color:#000;padding:20px;box-sizing:border-box}.lokasi{position:absolute;top:80px;left:55%;transform:translateX(-50%);text-align:center;font-family:'Open Sans Bold',sans-serif;font-size:32px;filter:blur(1.1px);line-height:1}.provinsi,.kabupaten{display:block}.nik-value{position:absolute;top:150px;left:350px;font-family:'Bygone ST Typewriter',monospace;font-size:36px;filter:blur(1.1px)}.info-utama{position:absolute;left:352px;top:229px;font-family:'Open Sans Regular',sans-serif;font-size:20px;line-height:1.5;font-weight:600;filter:blur(1.1px)}.info-kanan{position:absolute;right:175px;font-family:'Open Sans Regular',sans-serif;font-size:20px;line-height:1.4;font-weight:600;filter:blur(1.1px);text-align:center}.blood-container{top:287px;right:357px}.created-location-container{bottom:250px;right:155px}.created-date-container{bottom:220px;right:151px}.blood,.created-location,.created-date{display:block}.photo-container{position:absolute;top:192px;right:85px;width:250px;height:318px;overflow:hidden;border:1px solid #ccc}.photo{width:100%;height:100%;object-fit:cover}.signature{position:absolute;right:155px;bottom:140px;font-family:'Bolmand Signature',cursive;font-size:70px;font-style:italic;filter:blur(1.1px)}</style></head><body><div class="ktp-container"><div class="lokasi"><div class="provinsi">PROVINSI \${provinsi}</div><div class="kabupaten">KABUPATEN \${kabupaten}</div></div><div class="nik-value">\${nik}</div><div class="info-utama"><div>\${nama}</div><div>\${ttl}</div><div>\${gender}</div><div>\${alamat}</div><div>\${rt}</div><div>\${desa}</div><div>\${kecamatan}</div><div>\${agama}</div><div>\${status}</div><div>\${pekerjaan}</div><div>\${kewarganegaraan}</div><div>\${berlaku}</div></div><div class="info-kanan blood-container"><div class="blood">\${darah}</div></div><div class="info-kanan created-location-container"><div class="created-location">\${dibuat}</div></div><div class="info-kanan created-date-container"><div class="created-date">\${terbuat}</div></div><div class="photo-container"><img src="\${photo}" alt="Foto" class="photo"></div><div class="signature">\${sign}</div></div></body></html>`
+        }];
 
-    let currentFile = null;
-    let offset = 0;
-    let rowCount = 1;
-    const CHUNK_SIZE = 1024 * 1024; // 1MB per chunk
+        const getTemplate = ({ template = 1, photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign }) => {
+            const templateIndex = Number(template);
+            return templates[templateIndex - 1]?.html(photo, provinsi, kabupaten, nik, nama, ttl, gender, darah, alamat, rt, desa, kecamatan, agama, status, pekerjaan, kewarganegaraan, berlaku, dibuat, terbuat, sign) || "Template tidak ditemukan";
+        };
 
-    fileInput.addEventListener('change', (e) => {
-        currentFile = e.target.files[0];
-        if (!currentFile) return;
-
-        // Reset UI
-        tableBody.innerHTML = "";
-        offset = 0;
-        rowCount = 1;
-        searchInput.disabled = false;
-        searchInput.value = "";
-        dataTable.style.display = "table";
-        emptyState.style.display = "none";
-        
-        fileInfo.textContent = `${currentFile.name} (${(currentFile.size / (1024*1024)).toFixed(2)} MB)`;
-        
-        readChunk();
-    });
-
-    function readChunk() {
-        if (!currentFile) return;
-        
-        loadingSpinner.style.display = "block";
-        loadMoreBtn.disabled = true;
-
-        const reader = new FileReader();
-        const blob = currentFile.slice(offset, offset + CHUNK_SIZE);
-
-        reader.onload = function(e) {
-            const lines = e.target.result.split(/\r?\n/);
-            const fragment = document.createDocumentFragment();
-
-            lines.forEach(line => {
-                if (line.trim() === "") return;
-
-                // Logic Parsing Cerdas
-                let url = "-", user = "-", pass = "-";
-                
-                // Coba split umum
-                const parts = line.split(/[:|;,]/);
-
-                if (parts.length >= 3) {
-                    // Kemungkinan: URL:USER:PASS
-                    url = parts[0].trim();
-                    user = parts[1].trim();
-                    pass = parts.slice(2).join(':').trim();
-                } else if (parts.length === 2) {
-                    // Kemungkinan: USER:PASS
-                    user = parts[0].trim();
-                    pass = parts[1].trim();
-                } else {
-                    // Mentah
-                    user = line.trim();
+        // Logika Eksekusi Form ke Iframe
+        function generatePreview() {
+            const photoInput = document.getElementById('in_photo');
+            
+            // Baca foto dan convert ke Base64 Data URL agar bisa dirender di iframe
+            if (photoInput.files && photoInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    renderIframe(e.target.result);
                 }
-
-                // Skip header CSV/Log umum jika terdeteksi
-                if(url.toLowerCase() === 'url' && user.toLowerCase() === 'username') return;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="color:#cbd5e0; font-size:11px;">${rowCount++}</td>
-                    <td class="url-text">${escapeHtml(url)}</td>
-                    <td>${escapeHtml(user)}</td>
-                    <td><div class="code-box">${escapeHtml(pass)}</div></td>
-                `;
-                fragment.appendChild(tr);
-            });
-
-            tableBody.appendChild(fragment);
-            offset += CHUNK_SIZE;
-            
-            loadingSpinner.style.display = "none";
-            loadMoreBtn.disabled = false;
-            updateStatus();
-            
-            // Re-apply search filter jika ada
-            if(searchInput.value) triggerSearch();
-        };
-        
-        reader.onerror = function() {
-            alert("Gagal membaca file!");
-            loadingSpinner.style.display = "none";
-        };
-
-        reader.readAsText(blob);
-    }
-
-    function updateStatus() {
-        const percent = Math.min(100, (offset / currentFile.size) * 100).toFixed(1);
-        statusBar.textContent = `Ditampilkan: ${rowCount-1} baris | Progress File: ${percent}%`;
-        
-        if (offset < currentFile.size) {
-            loadMoreBtn.style.display = "inline-flex";
-            loadMoreBtn.innerHTML = `Muat Lebih Banyak (${(offset/(1024*1024)).toFixed(1)}MB / ${(currentFile.size/(1024*1024)).toFixed(1)}MB)`;
-        } else {
-            loadMoreBtn.style.display = "none";
-            statusBar.textContent += " (Selesai)";
+                reader.readAsDataURL(photoInput.files[0]);
+            } else {
+                // Jika tidak ada foto di-upload, pakai gambar dummy/kosong
+                renderIframe('https://via.placeholder.com/150x200?text=FOTO');
+            }
         }
-    }
 
-    // Fungsi Keamanan XSS Sederhana
-    function escapeHtml(text) {
-        if (!text) return "-";
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
+        function renderIframe(photoData) {
+            // Mengambil semua data dari input form
+            const dataKTP = {
+                template: document.getElementById('in_template').value,
+                photo: photoData,
+                provinsi: document.getElementById('in_provinsi').value.toUpperCase(),
+                kabupaten: document.getElementById('in_kabupaten').value.toUpperCase(),
+                nik: document.getElementById('in_nik').value.toUpperCase(),
+                nama: document.getElementById('in_nama').value.toUpperCase(),
+                ttl: document.getElementById('in_ttl').value.toUpperCase(),
+                gender: document.getElementById('in_gender').value.toUpperCase(),
+                darah: document.getElementById('in_darah').value.toUpperCase(),
+                alamat: document.getElementById('in_alamat').value.toUpperCase(),
+                rt: document.getElementById('in_rt').value.toUpperCase(),
+                desa: document.getElementById('in_desa').value.toUpperCase(),
+                kecamatan: document.getElementById('in_kecamatan').value.toUpperCase(),
+                agama: document.getElementById('in_agama').value.toUpperCase(),
+                status: document.getElementById('in_status').value.toUpperCase(),
+                pekerjaan: document.getElementById('in_pekerjaan').value.toUpperCase(),
+                kewarganegaraan: document.getElementById('in_kewarganegaraan').value.toUpperCase(),
+                berlaku: document.getElementById('in_berlaku').value.toUpperCase(),
+                dibuat: document.getElementById('in_dibuat').value.toUpperCase(),
+                terbuat: document.getElementById('in_terbuat').value.toUpperCase(),
+                sign: document.getElementById('in_sign').value
+            };
 
-    // Fungsi Pencarian
-    function triggerSearch() {
-        const filter = searchInput.value.toLowerCase();
-        const rows = tableBody.getElementsByTagName('tr');
-        for (let i = 0; i < rows.length; i++) {
-            const text = rows[i].textContent.toLowerCase();
-            rows[i].classList.toggle('hidden', !text.includes(filter));
+            // Dapatkan string HTML dari fungsi getTemplate
+            const resultHTML = getTemplate(dataKTP);
+
+            // Masukkan ke dalam iframe
+            const iframe = document.getElementById('preview-frame');
+            const doc = iframe.contentWindow.document;
+            
+            doc.open();
+            doc.write(resultHTML);
+            doc.close();
         }
-    }
-
-    searchInput.addEventListener('keyup', triggerSearch);
-    loadMoreBtn.addEventListener('click', readChunk);
-</script>
-
+    </script>
 </body>
 </html>
